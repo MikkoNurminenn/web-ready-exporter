@@ -42,6 +42,16 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q libxi6 libxrender1 libxkbcommon0 libsm6 libgl1 libegl1 libxxf86vm1 libxfixes3
 
+      - name: Expose bundled shared libraries (Draco encoder needs libdraco.so)
+        run: |
+          found="$(find "$BLENDER_DIR" -name 'libdraco*.so*' | head -1 || true)"
+          if [ -n "$found" ]; then
+            echo "libdraco at: $found"
+            echo "LD_LIBRARY_PATH=$(dirname "$found"):${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+          else
+            echo "no separate libdraco found (statically linked?)"
+          fi
+
       - name: Run test suite
         run: tests/run_tests.sh "$BLENDER_DIR/blender"
 

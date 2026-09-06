@@ -88,6 +88,10 @@ Windows `"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe"`.
   so re-imported topology looks broken when it is not.
 - Never use `--merge` on a model that an app addresses by object name.
 - One Blender process at a time on shared machines; each run is a full Blender start.
+- **Linux headless:** Blender 5.x ships the Draco encoder as a shared library that Python's `ctypes` cannot find
+  unless Blender's `lib` folder is on `LD_LIBRARY_PATH` (see the [CI workflow](.github/workflows/test.yml) for
+  the one-liner). Without it the exporter writes an **uncompressed** GLB, prints a `WARN`, lists it under
+  *Warnings* in the report and sets `"draco": false`; with `--strict` it fails instead.
 
 ## Test
 

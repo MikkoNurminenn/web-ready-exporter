@@ -541,6 +541,23 @@ def verify_glb(path, expected_names=(), strict_names=True):
 # Pipeline
 # --------------------------------------------------------------------------- #
 
+def _gltf_export(path, collection_name, *, draco, level):
+    bpy.ops.export_scene.gltf(
+        filepath=path, export_format="GLB", collection=collection_name,
+        export_apply=True, export_yup=True,
+        export_draco_mesh_compression_enable=bool(draco),
+        export_draco_mesh_compression_level=int(level),
+        export_draco_position_quantization=14,
+        export_draco_normal_quantization=10,
+        export_draco_texcoord_quantization=12,
+        export_image_format="WEBP", export_image_quality=80,
+        export_animations=False, export_skins=False, export_morph=False,
+        export_cameras=False, export_lights=False, export_extras=True,
+        export_texcoords=True, export_normals=True, export_tangents=False,
+        export_unused_images=False,
+    )
+
+
 def run_export(scene, out_path, *, tri_budget=300000, max_tex=1024, draco_level=6,
                weld_dist=1e-4, protect=DEFAULT_PROTECT, merge=False, strict=False,
                use_selection=False, lod_ratios=(), keep_temp=False):
@@ -595,27 +612,27 @@ def run_export(scene, out_path, *, tri_budget=300000, max_tex=1024, draco_level=
                 root, ext = os.path.splitext(out_path)
                 path = f"{root}_lod{li}{ext or '.glb'}"
 
-            bpy.ops.export_scene.gltf(
-                filepath=path, export_format="GLB", collection=ws.coll.name,
-                export_apply=True, export_yup=True,
-                export_draco_mesh_compression_enable=True,
-                export_draco_mesh_compression_level=int(draco_level),
-                export_draco_position_quantization=14,
-                export_draco_normal_quantization=10,
-                export_draco_texcoord_quantization=12,
-                export_image_format="WEBP", export_image_quality=80,
-                export_animations=False, export_skins=False, export_morph=False,
-                export_cameras=False, export_lights=False, export_extras=True,
-                export_texcoords=True, export_normals=True, export_tangents=False,
-                export_unused_images=False,
-            )
+            warnings = []
+            try:
+                _gltf_export(path, ws.coll.name, draco=True, level=draco_level)
+            except RuntimeError as e:
+                if "draco" not in str(e).lower():
+                    raise
+                detail = str(e).strip().splitlines()[-1] if str(e).strip() else "unknown error"
+                msg = (f"Draco encoder unavailable in this Blender build ({detail}); exported UNCOMPRESSED. "
+                       "On Linux add Blender's lib folder to LD_LIBRARY_PATH.")
+                if strict:
+                    raise RuntimeError("STRICT: " + msg) from e
+                log("WARN " + msg)
+                warnings.append(msg)
+                _gltf_export(path, ws.coll.name, draco=False, level=draco_level)
             names_to_check = [n for n in expected_names if n not in merged_objs]
             v = verify_glb(path, names_to_check, strict_names=True)
             v.update(lod=li, lod_ratio=lod_ratio, decimate_ratio=round(ratio, 3),
                      triangles_removed=removed, verts_welded=welded,
                      materials_merged=merged_mats, objects_merged=merged_objs,
                      materialless_fixed=fixed, textures_resized=resized,
-                     unique_meshes=len(ws.unique_meshes()))
+                     unique_meshes=len(ws.unique_meshes()), warnings=warnings)
             outputs.append(v)
             log(f"LOD{li}: {v['megabytes']} MB, {v['triangles']:,} tris, {v['draw_calls']} draw calls, "
                 f"{v['nodes']} nodes, {v['meshes']} meshes -> {path}")
@@ -659,8 +676,11 @@ def write_report(out_path, report):
         "- Textures downscaled: " + (", ".join(f"{n} {w}×{h} → {nw}×{nh}" for n, (w, h), (nw, nh) in o0['textures_resized']) or "-"),
         f"- Protected names preserved: {len(a['protected_names'])}"
         + (f" ({', '.join(a['protected_names'][:8])}{'…' if len(a['protected_names']) > 8 else ''})" if a['protected_names'] else ""),
-        "", "## Audit findings", "",
     ]
+    warns = [w for o in report["outputs"] for w in o.get("warnings", [])]
+    if warns:
+        lines += ["", "## Warnings", ""] + [f"- {w}" for w in warns]
+    lines += ["", "## Audit findings", ""]
     for sev, obj, msg in a["issues"]:
         lines.append(f"- **{sev}** `{obj}`: {msg}")
     if not a["issues"]:
