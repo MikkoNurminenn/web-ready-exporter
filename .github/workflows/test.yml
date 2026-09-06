@@ -46,7 +46,8 @@ jobs:
         run: tests/run_tests.sh "$BLENDER_DIR/blender"
 
       - name: Validate extension package
-        run: "$BLENDER_DIR/blender" --command extension validate web_ready_exporter
+        run: |
+          "$BLENDER_DIR/blender" --command extension validate web_ready_exporter
 
       - name: Upload reports
         if: always()
