@@ -1,0 +1,22 @@
+schema_version = "1.0.0"
+
+id = "web_ready_exporter"
+version = "1.0.0"
+name = "Web-Ready Exporter"
+tagline = "Audit, decimate, compress and verify GLB for the web"
+maintainer = "Mikko Nurminen"
+type = "add-on"
+
+website = "https://github.com/MikkoNurminenn/web-ready-exporter"
+tags = ["Import-Export"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:MIT"]
+copyright = ["2026 Mikko Nurminen"]
+
+[permissions]
+files = "Write the GLB and its report files to the chosen output path"
+
+[build]
+paths_exclude_pattern = ["__pycache__/", "/.git/", "*.zip", ".DS_Store"]

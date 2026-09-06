@@ -1,0 +1,14 @@
+# build + test outputs
+dist/
+tests/_out/
+*.glb
+*.report.json
+*.report.md
+!docs/example.report.md
+*.blend
+*.blend1
+
+# python / os
+__pycache__/
+*.pyc
+.DS_Store
