@@ -1,7 +1,7 @@
-schema_version = "1.0.0"
+schema_version = "1.0.1"
 
 id = "web_ready_exporter"
-version = "1.0.0"
+version = "1.0.1"
 name = "Web-Ready Exporter"
 tagline = "Audit, decimate, compress and verify GLB for the web"
 maintainer = "Mikko Nurminen"

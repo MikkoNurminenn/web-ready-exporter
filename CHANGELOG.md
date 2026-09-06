@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — 2026-09-06
+
+- Draco encoder unavailable (Blender 5.x on Linux without Blender's `lib` folder on `LD_LIBRARY_PATH`) no longer crashes the export: the GLB is written uncompressed with a `WARN`, a *Warnings* section in the report and `"draco": false`; `--strict` fails instead.
+- CI exposes Blender's bundled shared libraries so Draco is exercised on both Blender versions.
+- README: Linux headless note.
+
 ## 1.0.0 — 2026-09-06
 
 First public release.

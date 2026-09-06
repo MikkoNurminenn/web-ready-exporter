@@ -30,7 +30,7 @@ import sys
 import time
 from mathutils import Matrix
 
-VERSION = (1, 0, 0)
+VERSION = (1, 0, 1)
 TEMP_COLLECTION = "WRE_TEMP_EXPORT"
 ORIG_SUFFIX = "__wreorig"
 DEFAULT_PROTECT = "Anchor_,Hotspot_,Ctrl_,Pivot_,Socket_"
